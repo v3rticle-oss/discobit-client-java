@@ -2,6 +2,7 @@ package com.v3rticle.oss.discobit.client;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,14 +140,25 @@ public class DiscobitClient {
 	 */
 	public String getConfigProperty(UUID configUUID, String key, boolean useCachedProperties) throws DiscobitOperationException{
 		
-		String selectedUUID = configUUID.toString();
-		if (selectedUUID == null)
+		String selectedUUID = null;
+		if (configUUID != null)
+			selectedUUID = configUUID.toString();
+		else if (selectedUUID == null)
 			selectedUUID = settings.getDefaultConfigurationUUID();
 		
 		assert checkConfigExists(selectedUUID);
 		assert key != null;
 
 		return connector.getConfigParamValue(selectedUUID, key);
+	}
+	
+	/**
+	 * Read a configuration from the repository
+	 * @param configUUID
+	 * @return
+	 */
+	public Properties getConfig(UUID configUUID) throws DiscobitOperationException{
+		return connector.getConfiguration(configUUID.toString());
 	}
 	
 }

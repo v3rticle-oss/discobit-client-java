@@ -3,6 +3,8 @@ package com.v3rticle.oss.discobit.client;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Iterator;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +63,7 @@ public class DiscobitConnector {
 
 	    URI loginUri = null;
 		try {
-			loginUri = new URIBuilder(serverAddress).setParameter("j_username", "install").setParameter("j_password", "install").build();
+			loginUri = new URIBuilder(serverAddress).setParameter("j_username", settings.getRepositoryUsername()).setParameter("j_password", settings.getRepositoryPassword()).build();
 		} catch (URISyntaxException e) {
 			log.log(Level.SEVERE, "[discobit] connector failed to authenticate:" + e.getMessage());
 		}
@@ -257,6 +259,43 @@ public class DiscobitConnector {
 		}
 		
 		return responseValue;
+	}
+	
+	protected Properties getConfiguration(String cUUID){
+		// check cookie auth
+		if (!authenticated){
+			log.log(Level.SEVERE, "[discobit] connector not authenticated, returning");
+			return null;
+		}
+		
+		Properties confProps = new Properties();
+		
+		try {
+			String op = settings.getServerURL() + "/rest/" + settings.getApiVersion() + "/configuration/" + cUUID;
+			
+			GetRequest getReq = Unirest.get(op);
+			if (getReq.asString().getBody() != null){
+				try {
+					HttpResponse<JsonNode> jsonResponse = getReq.asJson();
+					Iterator it = jsonResponse.getBody().getObject().getJSONObject("properties").keys();
+					JSONObject a;
+					while(it.hasNext()){
+						String key = (String) it.next();
+						a = jsonResponse.getBody().getObject().getJSONObject("properties").getJSONObject(key);
+						confProps.put(key, a.getString("value"));
+					}
+				} catch (Exception e){
+					log.log(Level.WARNING, "[discobit] connector failed to fetch configuration value: " + cUUID  + ", reason: " + e.getMessage());
+				}
+				
+			} else {
+				log.log(Level.WARNING, "[discobit] connector failed to fetch configuration value: " + cUUID);
+			}
+		} catch (UnirestException e) {
+			log.log(Level.SEVERE, "[discobit] connector failed to fetch configuration value: " + e.getMessage());
+		}
+		
+		return confProps;
 	}
 	
 }

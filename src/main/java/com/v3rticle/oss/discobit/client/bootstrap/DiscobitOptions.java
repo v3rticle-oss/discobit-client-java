@@ -14,6 +14,9 @@ public class DiscobitOptions {
 	 */
 	public static final String DISCOBIT_SERVER_URL = "discobit.repository.url"; 
 	
+	public static final String DISCOBIT_SERVER_USERNAME = "discobit.repository.username"; 
+	
+	public static final String DISCOBIT_SERVER_PASSWORD = "discobit.repository.password"; 
 	
 	/**
 	 * 
