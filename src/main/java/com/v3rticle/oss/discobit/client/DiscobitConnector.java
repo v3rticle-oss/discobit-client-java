@@ -61,7 +61,7 @@ public class DiscobitConnector {
 
 	    URI loginUri = null;
 		try {
-			loginUri = new URIBuilder(serverAddress).setParameter("j_username", "p4admin").setParameter("j_password", "kr4ftw3rk").build();
+			loginUri = new URIBuilder(serverAddress).setParameter("j_username", "install").setParameter("j_password", "install").build();
 		} catch (URISyntaxException e) {
 			log.log(Level.SEVERE, "[discobit] connector failed to authenticate:" + e.getMessage());
 		}
