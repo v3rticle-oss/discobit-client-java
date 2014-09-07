@@ -55,7 +55,21 @@ Configurations are read from the central server during bootstrap or on demand by
 <h1>
 <a name="java-client-library---usage" class="anchor" href="#java-client-library---usage"><span class="octicon octicon-link"></span></a>Java Client Library - Usage</h1>
 
+
+<h2>Option 1: Java Agent Configuration</h2>
+<p>
+<pre><code>
+java -javaagent:PATHTO/discobit-client-java-0.6.jar -jar yourapplication.jar foo.bar.Application
+-Ddiscobit.repository.url=http://discobit.foobar.com:80
+-Ddiscobit.repository.username=yourusername
+-Ddiscobit.repository.password=yourpassword
+-Ddiscobit.cfg.uuid=6992f5aa-c215-4beb-8645-150b9e8c8eab
+</code></pre>
+<p>
+
+<h2>Option 2: Programmatic</h2>
 <p><a href="javadoc">Javadocs</a></p>
+
       </section>
 
     </div>
