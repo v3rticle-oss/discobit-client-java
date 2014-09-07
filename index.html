@@ -68,7 +68,8 @@ java -javaagent:PATHTO/discobit-client-java-0.6.jar -jar yourapplication.jar foo
 <p>
 
 <h2>Option 2: Programmatic</h2>
-<pre><code>{% highlight java %}
+
+{% highlight java %}
 // get the client				
 DiscobitClient discobit = DiscobitClientFactory.getClient();
 
@@ -84,7 +85,6 @@ boolean success = discobit.createConfigProperty(cUUID, "test1", "value1");
 // read the propery
 String value = discobit.getConfigProperty(cUUID,"test1", false);  
 {% endhighlight %}  
-</code></pre>
 <p>See <a href="javadoc">Javadocs</a> for details.</p>
 
       </section>
