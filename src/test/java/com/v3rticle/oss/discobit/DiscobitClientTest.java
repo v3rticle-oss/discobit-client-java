@@ -1,5 +1,7 @@
 package com.v3rticle.oss.discobit;
 
+import java.io.File;
+import java.net.URL;
 import java.util.UUID;
 
 import org.junit.After;
@@ -25,7 +27,9 @@ public class DiscobitClientTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		System.setProperty(DiscobitOptions.DISCOBIT_SERVER_URL, "http://discobit.v3rticle.com");
+		System.setProperty(DiscobitOptions.DISCOBIT_SERVER_URL, "http://127.0.0.1:9999");
+		System.setProperty(DiscobitOptions.DISCOBIT_SERVER_USERNAME, "adminadmin");
+		System.setProperty(DiscobitOptions.DISCOBIT_SERVER_PASSWORD, "adminadmin");
 		System.clearProperty(DiscobitOptions.DISCOBIT_CONFIG_UUID);
 		discobit = DiscobitClientFactory.getClient();
 		
@@ -54,6 +58,14 @@ public class DiscobitClientTest {
 			
 			String value = discobit.getConfigProperty(cUUID,"test1", false);
 			Assert.assertEquals("value1", value);
+			
+			URL url = this.getClass().getClassLoader().getResource("test.properties");
+			File f = new File(url.getFile());
+			Assert.assertTrue(f.exists());
+
+			boolean successPush = discobit.pushConfiguration(cUUID.toString(), f);
+			Assert.assertTrue(successPush);
+			
 			
 		} catch (DiscobitOperationException e) {
 			Assert.fail(e.getMessage());

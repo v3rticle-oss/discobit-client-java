@@ -1,5 +1,6 @@
 package com.v3rticle.oss.discobit.client;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
@@ -24,20 +25,28 @@ public class DiscobitClient {
 	
 	Logger log = Logger.getLogger(DiscobitClient.class.getName());
 	
+	/**
+	 * the connector including settings
+	 */
 	private DiscobitConnector connector;
 	
-	private DiscobitSettings settings = new DiscobitSettings();
+	/**
+	 * DiscoBit Client with manual configuration
+	 * @param connector
+	 * @since 0.7
+	 */
+	protected DiscobitClient(DiscobitConnector connector){
+		this.connector = connector;
+	}
 	
 	/**
-	 * 
+	 * DiscoBit Client with Autodiscovery
 	 */
 	protected DiscobitClient(){
 		connector = new DiscobitConnector();
-		
-		
 	}
 	
-	private boolean checkConfigExists(String uuid){
+	public boolean checkConfigExists(String uuid){
 		boolean configExists = connector.checkConfiguration(uuid);
 		if (!configExists)
 			log.log(Level.SEVERE, "Configuration does not exist in repository: " + uuid);
@@ -144,7 +153,7 @@ public class DiscobitClient {
 		if (configUUID != null)
 			selectedUUID = configUUID.toString();
 		else if (selectedUUID == null)
-			selectedUUID = settings.getDefaultConfigurationUUID();
+			selectedUUID = connector.getSettings().getDefaultConfigurationUUID();
 		
 		assert checkConfigExists(selectedUUID);
 		assert key != null;
@@ -161,4 +170,28 @@ public class DiscobitClient {
 		return connector.getConfiguration(configUUID.toString());
 	}
 	
+	
+	/**
+	 * Check proper connectivity
+	 * @return
+	 * @throws DiscobitOperationException
+	 */
+	public boolean testAuthentication() throws DiscobitOperationException{
+		return connector.testAuthentication();
+	}
+
+	/**
+	 * push a configuration property file to the repository
+	 * @param cUUID
+	 * @param config
+	 * @return success
+	 * @since 0.7
+	 */
+	public boolean pushConfiguration(String cUUID, File config) {
+		assert config != null;
+		assert config.exists();
+		assert cUUID != null;
+		
+		return connector.pushConfiguration(cUUID, config);
+	}
 }

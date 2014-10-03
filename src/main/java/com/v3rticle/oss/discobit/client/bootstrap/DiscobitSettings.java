@@ -21,6 +21,23 @@ public class DiscobitSettings {
 	private String apiVersion = "v1";
 	private String defaultConfigurationUUID;
 	
+	/**
+	 * Settings with manual configuration
+	 * @param serverURL
+	 * @param repositoryUsername
+	 * @param repositoryPassword
+	 */
+	public DiscobitSettings(URL serverURL, String repositoryUsername,
+			String repositoryPassword) {
+		super();
+		this.serverURL = serverURL;
+		this.repositoryUsername = repositoryUsername;
+		this.repositoryPassword = repositoryPassword;
+	}
+
+	/**
+	 * Settings using auto discovery from System/Env
+	 */
 	public DiscobitSettings(){
 		String dUrlEnv = System.getenv(DiscobitOptions.DISCOBIT_SERVER_URL);
 		String dUserEnv = System.getenv(DiscobitOptions.DISCOBIT_SERVER_USERNAME);

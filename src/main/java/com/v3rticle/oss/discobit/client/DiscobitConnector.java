@@ -1,5 +1,7 @@
 package com.v3rticle.oss.discobit.client;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -9,13 +11,25 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -42,18 +56,31 @@ public class DiscobitConnector {
 
 	Logger log = Logger.getLogger(DiscobitConnector.class.getName());
 	
-	private DiscobitSettings settings = new DiscobitSettings();
-	
+	private DiscobitSettings settings;
+	private CookieStore cookieStore = new BasicCookieStore();
 	private boolean authenticated;
 	
-	public DiscobitConnector(){
+	protected DiscobitConnector(DiscobitSettings settings){
+		this.settings = settings;
 		authenticate();
 	}
 	
+	protected DiscobitConnector(){
+		settings = new DiscobitSettings();
+		authenticate();
+	}
+	
+	protected DiscobitSettings getSettings() {
+		return settings;
+	}
+
 	/**
 	 * do form authentication against rest interface, will get proper session cookie set in return
 	 */
-	private void authenticate(){
+	private boolean processAuthentication(){
+		
+		boolean authenticationAttemptSuccess = false;
+		
 		URI serverAddress = null;
 		try {
 			serverAddress = new URI( settings.getServerURL() + "/rest/j_spring_security_check");
@@ -69,7 +96,7 @@ public class DiscobitConnector {
 		}
 
 	    RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.BEST_MATCH).build();
-	    CookieStore cookieStore = new BasicCookieStore();
+	    
 	    HttpClientContext context = HttpClientContext.create();
 	    context.setCookieStore(cookieStore);
 
@@ -78,15 +105,76 @@ public class DiscobitConnector {
 	    try {
 			CloseableHttpResponse loginResponse = httpClient.execute(httpGet,context);
 			log.info("[discobit] authentication response: " + loginResponse.getStatusLine());
+			
+			if (loginResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
+				log.info("[discobit] authentication cookie: " + context.getCookieStore().getCookies());
+				authenticationAttemptSuccess = true;
+			} else {
+				log.warning("[discobit] authentication failed");
+			}
+			
 		} catch (IOException e) {
 			log.log(Level.SEVERE, "[discobit] connector failed to authenticate:" + e.getMessage());
 		}
 
-	    log.info("[discobit] authentication cookie: " + context.getCookieStore().getCookies());
-		
 		Unirest.setHttpClient(httpClient);
-		this.authenticated = true;
+		
+		return authenticationAttemptSuccess;
 
+	}
+	
+	
+
+	/**
+	 * sets authentication status after attempt
+	 * @return
+	 */
+	private boolean authenticate(){
+		
+		this.authenticated = processAuthentication();
+		return authenticated;
+		
+	}
+	
+	/**
+	 * Does not set authentication status after attempt - just for testing connectivity
+	 * @return
+	 */
+	protected boolean testAuthentication(){
+		return processAuthentication();
+	}
+	
+	public boolean pushConfiguration(String cUUID, File config){
+		// check cookie auth
+		if (!authenticated){
+			log.log(Level.SEVERE, "[discobit] connector not authenticated, returning");
+			return false;
+		}
+		
+		HttpEntity entity = MultipartEntityBuilder.create()
+				.setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+				.setStrictMode()
+				.addBinaryBody("file", config)
+				.build();
+		HttpUriRequest post = RequestBuilder.post()
+				.setUri(settings.getServerURL() + "/rest/" + settings.getApiVersion() + "/configuration/propertyfile/")
+				.addParameter("cUUID", cUUID)
+				.setEntity(entity)
+				.build();
+		
+		HttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+		
+		int responseStatus = 0;
+		org.apache.http.HttpResponse response = null;
+	    try {
+	        response = client.execute(post);
+	        responseStatus = response.getStatusLine().getStatusCode();
+	    } catch (ClientProtocolException e) {
+	    	log.severe(e.getMessage());
+	    } catch (IOException e) {
+	    	log.severe(e.getMessage());
+	    }
+	    return responseStatus == HttpStatus.SC_OK;
 	}
 	
 	/**
