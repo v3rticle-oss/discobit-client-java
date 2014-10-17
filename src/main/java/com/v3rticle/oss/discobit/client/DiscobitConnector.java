@@ -294,7 +294,7 @@ public class DiscobitConnector {
 		boolean success = false;
 		HttpResponse<JsonNode> response = null;
 		try {
-			String op = settings.getServerURL() + "/rest/" + settings.getApiVersion() + "/configuration/" + cDTO.getUuid() + "/" + cpDTO.getKey() + "/";
+			String op = settings.getServerURL() + "/rest/" + settings.getApiVersion() + "/property/" + cDTO.getUuid() + "/" + cpDTO.getKey() + "/";
 			
 			Object ob = JSONObject.wrap(cpDTO);
 			JsonNode node = new JsonNode(ob.toString());
@@ -327,7 +327,7 @@ public class DiscobitConnector {
 		
 		String responseValue = null;
 		try {
-			String op = settings.getServerURL() + "/rest/" + settings.getApiVersion() + "/configuration/" + cUUID + "/" + configParamKey;
+			String op = settings.getServerURL() + "/rest/" + settings.getApiVersion() + "/property/" + cUUID + "/" + configParamKey;
 			
 			GetRequest getReq = Unirest.get(op);
 			if (getReq.asString().getBody() != null){
