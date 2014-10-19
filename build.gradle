@@ -1,3 +1,5 @@
+defaultTasks "shadowJar"
+
 buildscript {
   repositories { jcenter() }
   dependencies {
@@ -16,7 +18,7 @@ repositories {
 configurations {
 
 	group = 'com.v3rticle.oss'
-	version = '0.7'
+	version = '0.7.1'
 	
 	compile{
 		transitive = true
